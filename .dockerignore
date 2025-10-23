@@ -1,0 +1,13 @@
+# --- jangan kirim folder/berkas berat ---
+.git
+**/__pycache__/
+*.pyc
+frontend/node_modules
+media/
+*.log
+
+# --- PASTIKAN file/dir penting TIDAK di-ignore ---
+!services/
+!requirements.txt
+!docker-compose.yml
+!frontend/

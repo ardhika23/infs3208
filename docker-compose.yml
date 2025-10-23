@@ -1,0 +1,84 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-type1db}
+      POSTGRES_USER: ${DB_USER:-type1user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-type1pass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    environment:
+      # pakai Postgres di container
+      LOCAL: "0"
+      DB_NAME: ${DB_NAME:-type1db}
+      DB_USER: ${DB_USER:-type1user}
+      DB_PASSWORD: ${DB_PASSWORD:-type1pass}
+      DB_HOST: db
+      DB_PORT: "5432"
+
+      # inference antar-container
+      INFERENCE_BASE_URL: http://inference:8001
+
+      # django basics
+      DJANGO_SETTINGS_MODULE: config.settings
+      SECRET_KEY: ${SECRET_KEY:-dev-secret}
+      DEBUG: "0"
+      ALLOWED_HOSTS: "*"
+    depends_on:
+      db:
+        condition: service_healthy
+      inference:
+        condition: service_started
+    volumes:
+      - media:/app/media
+    expose:
+      - "8000"
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      gunicorn wsgi:application -b 0.0.0.0:8000 --workers 3 --timeout 90
+      "
+
+  inference:
+    build:
+      context: ./services/inference_svc
+      dockerfile: Dockerfile
+    expose:
+      - "8001"
+    command: uvicorn app:app --host 0.0.0.0 --port 8001
+
+  frontend:
+    build:
+      context: ./frontend
+      target: prod
+    expose:
+      - "80"
+
+  web:
+    image: nginx:1.27-alpine
+    depends_on:
+      - frontend
+      - gateway
+    ports:
+      - "80:80"
+    volumes:
+      # nginx gateway conf (lihat bagian 4)
+      - ./deploy/nginx-gateway.conf:/etc/nginx/conf.d/default.conf:ro
+      # share media dari gateway bila mau direct-serve via web (opsional, di sini tetap proxy ke gateway)
+      - media:/srv/media:ro
+
+volumes:
+  pgdata:
+  media:

@@ -1,0 +1,21 @@
+:root { color-scheme: dark; }
+
+html, body, #root {
+  height: 100%;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  /* warna dasar saat awal render */
+  background: #0b1020;
+  /* opsional: langsung kasih gradient biar makin halus */
+  background:
+    radial-gradient(1000px 700px at 20% -10%, #2dd4bf33, transparent),
+    radial-gradient(1000px 700px at 120% 120%, #6366f133, transparent),
+    linear-gradient(135deg,#0f172a 0%, #111827 60%, #0b1020 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

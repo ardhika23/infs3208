@@ -1,0 +1,1 @@
+INFERENCE_URL = os.getenv("INFER_SVC", "http://inference:8001")

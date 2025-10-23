@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+python-multipart
+Pillow
+
+# versi ini cocok dengan opencv 4.12
+numpy
+opencv-python-headless
+
+# Torch stack (CPU)
+torch
+torchvision
+
+ultralytics
