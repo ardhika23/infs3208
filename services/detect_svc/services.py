@@ -4,14 +4,16 @@ import requests
 from django.conf import settings
 from PIL import Image, ImageDraw, ImageFont
 
-# Baca URL inference dari env (mendukung dua nama var)
+# ============================================================
+# Konfigurasi koneksi ke service inference (FastAPI)
+# ============================================================
 INFERENCE_URL = (
     os.getenv("INFERENCE_URL")
     or os.getenv("INFERENCE_BASE_URL")
     or "http://127.0.0.1:8001"
 ).rstrip("/")
 
-# ---------- HTTP call ke service inference ----------
+
 def call_inference(file_path: str) -> dict:
     """
     Kirim file ke backend inference (FastAPI) di /infer.
@@ -27,7 +29,11 @@ def call_inference(file_path: str) -> dict:
     r.raise_for_status()
     return r.json()
 
-# ---------- Utilities gambar ----------
+
+# ============================================================
+# Utilitas menggambar bbox dan menyimpan annotated image
+# ============================================================
+
 # Warna per kelas (opsional). Jika kelas tak terdaftar, pakai warna default.
 CLASS_COLORS = {
     "Safety helmet": (0, 255, 255),   # cyan
@@ -35,25 +41,27 @@ CLASS_COLORS = {
     "No wearpack":   (0, 255, 255),
     "Dust mask":     (0, 255, 255),
     "No dust mask":  (0, 255, 255),
-    "Ear protection":(0, 255, 255),
-    "No ear protection": (0,255,255),
+    "Ear protection": (0, 255, 255),
+    "No ear protection": (0, 255, 255),
     "Hand gloves":   (0, 255, 255),
-    "No hand gloves":(0, 255, 255),
-    "Safety glasses":(0, 255, 255),
-    "No safety glasses": (0,255,255),
+    "No hand gloves": (0, 255, 255),
+    "Safety glasses": (0, 255, 255),
+    "No safety glasses": (0, 255, 255),
     "Safety shoes":  (0, 255, 255),
-    "No safety shoes": (0,255,255),
+    "No safety shoes": (0, 255, 255),
 }
 DEFAULT_COLOR = (255, 0, 0)  # merah jika tidak match di atas
+
 
 def _get_color(klass: str):
     return CLASS_COLORS.get(klass, DEFAULT_COLOR)
 
+
 def draw_boxes_and_save(src_path: str, items):
     """
-    Gambar bbox + label (seperti YOLO) dan simpan ke MEDIA_ROOT/annotated.
-    items: list of {klass, confidence, x, y, w, h}
-    Return: MEDIA_URL path dari file hasil.
+    Gambar bbox + label dan simpan ke MEDIA_ROOT/annotated.
+    items: list of {klass, confidence, x, y, w, h} (pixel absolut)
+    Return: MEDIA_URL path dari file hasil (str).
     """
     img = Image.open(src_path).convert("RGB")
     W, H = img.size
@@ -71,24 +79,23 @@ def draw_boxes_and_save(src_path: str, items):
     for it in items or []:
         x, y, w, h = int(it["x"]), int(it["y"]), int(it["w"]), int(it["h"])
         x2, y2 = x + w, y + h
-        label = f'{it["klass"]} {float(it["confidence"]):.2f}'
-        color = _get_color(it["klass"])
+        label = f'{it.get("klass","?")} {float(it.get("confidence",0)):.2f}'
+        color = _get_color(it.get("klass", ""))
 
-        # kotak bbox
+        # bbox
         draw.rectangle([x, y, x2, y2], outline=color + (255,), width=3)
 
-        # label background
+        # label
         pad = 4
-        tb = draw.textbbox((0, 0), label, font=font)  # (l, t, r, b)
-        tw, th = tb[2] - tb[0], tb[3] - tb[1]
-
+        l, t, r, b = draw.textbbox((0, 0), label, font=font)
+        tw, th = r - l, b - t
         label_y = y - (th + pad * 2)
         if label_y < 0:
             label_y = y
 
         draw.rectangle(
             [x, label_y, x + tw + pad * 2, label_y + th + pad * 2],
-            fill=(0, 255, 255, 220),  # cyan semi-transparan
+            fill=(0, 255, 255, 220),
             outline=color + (255,),
             width=1,
         )

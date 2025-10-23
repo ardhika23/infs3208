@@ -1,14 +1,11 @@
 from django.urls import path
-from .views import (
-    HealthView, UploadView, DetectView,
-    ResultsListView, ResultDetailView, summary
-)
+from . import views
 
 urlpatterns = [
-    path("health", HealthView.as_view()),
-    path("upload", UploadView.as_view()),      # POST /api/detect/upload
-    path("detect", DetectView.as_view()),      # POST /api/detect/detect
-    path("results", ResultsListView.as_view()),               # GET
-    path("results/<uuid:id>", ResultDetailView.as_view()),    # GET
-    path("summary", summary),                                   # GET
+    path("health/", views.HealthView.as_view()),
+    path("upload", views.UploadView.as_view()),
+    path("detect", views.DetectView.as_view()),
+    path("results", views.ResultsListView.as_view()),
+    path("results/<int:id>", views.ResultDetailView.as_view()),
+    path("summary", views.summary),
 ]

@@ -21,6 +21,7 @@ from .services import call_inference, draw_boxes_and_save
 
 class HealthView(views.APIView):
     permission_classes = [AllowAny]
+
     def get(self, _):
         return Response({"status": "ok"})
 

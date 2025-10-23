@@ -20,7 +20,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*,localhost,127.0.0.1").split(",")
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # <- penting utk collectstatic
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = "/app/media"
 
 # === Apps ===
 INSTALLED_APPS = [
