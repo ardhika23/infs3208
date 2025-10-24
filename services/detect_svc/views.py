@@ -1,6 +1,7 @@
 import os
 import statistics
 from datetime import timedelta
+import socket
 
 import requests
 from django.conf import settings
@@ -23,7 +24,7 @@ class HealthView(views.APIView):
     permission_classes = [AllowAny]
 
     def get(self, _):
-        return Response({"status": "ok"})
+        return Response({"status": "ok", "pod": socket.gethostname()})
 
 
 class UploadView(views.APIView):

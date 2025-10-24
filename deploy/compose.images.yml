@@ -1,0 +1,11 @@
+services:
+  gateway:
+    image: type1_gateway:v1
+    build: null
+  inference:
+    image: type1_inference:v1
+    build: null
+  frontend:
+    image: type1_frontend:v1
+    build: null
+    

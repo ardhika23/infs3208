@@ -13,6 +13,10 @@ RUN apt-get update \
 
 WORKDIR /app
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 wget \
+ && rm -rf /var/lib/apt/lists/*
+
 # Install deps (pin versi compatible dengan NumPy 1.x)
 COPY requirements.txt .
 RUN pip install --upgrade pip \
